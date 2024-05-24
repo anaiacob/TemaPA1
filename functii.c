@@ -214,3 +214,119 @@ void cerinta1(FILE* fis_team, echipa** lista_echipa, FILE* print) {
         cap_lista = cap_lista->next;
     }
 }
+
+
+
+void elimina_nod(echipa** head, echipa* nod) {
+    if (nod == NULL) {
+        return;
+    }
+    if (*head == nod) {
+        *head = nod->next;
+    }
+    if (nod->prev != NULL) {
+        nod->prev->next = nod->next;
+    }
+    if (nod->next != NULL) {
+        nod->next->prev = nod->prev;
+    }
+    free(nod->name_team);
+    for (int i = 0; i < nod->number_players; i++) {
+        free(nod->player[i].firstName);
+        free(nod->player[i].secondName);
+    }
+    free(nod->player);
+    free(nod);
+}
+
+void swap(int* a, int* b) {
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+int partition(int arr[], int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1);
+
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            swap(&arr[i], &arr[j]);
+        }
+    }
+    swap(&arr[i + 1], &arr[high]);
+    return (i + 1);
+}
+
+void quickSort(int arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+long long putere2(int n)
+{
+    int m=1;
+    while(m<n)
+        m*=2;
+    m/=2;
+    return m;
+}
+void eliminare_echipa(int m,int* punctaj_echipe,echipa**head)
+{
+    int i=0;
+    while(m>0)
+    {
+        echipa* capat = *head;
+        int gasit=1;
+        while(gasit==1 && capat->next!=NULL)
+        {
+            if(capat->total_points==punctaj_echipe[i])
+            {
+                elimina_nod(&head,capat);
+                gasit=0;
+            }
+            capat=capat->next;
+        }
+        if(capat->total_points==punctaj_echipe[i])
+            {
+                elimina_nod(&head,capat);
+                gasit=0;
+            }
+        i++;
+        m--;
+    }
+}
+void cerinta2(FILE* fis_team,echipa** lista_echipa,FILE* print)
+{
+    int nrechipe;
+    fscanf(fis_team,"%d",&nrechipe);
+    long long m=putere2(nrechipe);
+    fseek(fis_team,0,SEEK_SET);
+    *lista_echipa = creaza_echipa(fis_team);
+    echipa* cap_lista = *lista_echipa;
+    echipa* cap_lista1 = *lista_echipa;
+    echipa* cap_lista2 = *lista_echipa;
+    int* punctaj_echipe=(int*)malloc(nrechipe*sizeof(int));
+    int i=0;
+    while (cap_lista->next != NULL) {
+        fprintf(print, "%s\n", cap_lista->name_team);
+        punctaj_echipe[i]=cap_lista->total_points;
+        cap_lista = cap_lista->next;
+        i++;
+    }
+    fprintf(print,"%s\n",cap_lista->name_team);
+    fseek(print,0,SEEK_SET);
+    quickSort(punctaj_echipe,0,nrechipe-1);
+    eliminare_echipa(m,punctaj_echipe,&cap_lista1);
+    while(cap_lista2->next!=NULL)
+    {
+        fprintf(print, "%s\n", cap_lista2->name_team);
+        cap_lista2 = cap_lista2->next;
+    }
+    fprintf(print,"%s\n",cap_lista2->name_team);
+    free(punctaj_echipe);
+}
