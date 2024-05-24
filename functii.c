@@ -330,3 +330,4 @@ void cerinta2(FILE* fis_team,echipa** lista_echipa,FILE* print)
     fprintf(print,"%s\n",cap_lista2->name_team);
     free(punctaj_echipe);
 }
+
