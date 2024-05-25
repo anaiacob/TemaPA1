@@ -1,4 +1,27 @@
 #include "functii.h"
+
+void deschidere_fisiere(char* ar1, FILE** f1, char* ar2, FILE** f2, char* ar3, FILE** f3)
+{
+    *f1=fopen(ar1,"rt");
+    if(f1==NULL)
+    {
+        printf("Nu s-a putut deschide.\n");
+        exit(1);
+    }
+    *f2=fopen(ar2,"rt");
+    if(f2==NULL)
+    {
+        printf("Nu s-a putut deschide.\n");
+        exit(1);
+    }
+    *f3=fopen(ar3,"wt");
+    if(f3==NULL)
+    {
+        printf("Nu s-a putut deschide.\n");
+        exit(1);
+    }
+}
+
 //este ok
 void citeste_cerinte(FILE* f1, int* cerinte) {
     char c;
@@ -8,6 +31,26 @@ void citeste_cerinte(FILE* f1, int* cerinte) {
             cerinte[i] = (int)(c - '0');
             i++;
         }
+    }
+}
+
+void eliberare_lista(echipa** head)
+{
+    echipa* nod=*head;
+    while(nod!=NULL)
+    {
+        //free(nod->name_team);
+        //free(nod->total_points);
+        for(int i=0;i<nod->number_players;i++)
+        {
+            free(nod->player[i].firstName);
+            free(nod->player[i].secondName);
+            //free(nod->player[i].points);
+        }
+        free(nod);
+
+        nod= nod->next;
+
     }
 }
 //este ok
@@ -206,15 +249,18 @@ echipa* creaza_echipa(FILE* fis_team) {
     return lista_echipa;
 }
 
-void cerinta1(FILE* fis_team, echipa** lista_echipa, FILE* print) {
-    *lista_echipa = creaza_echipa(fis_team);
-    echipa* cap_lista = *lista_echipa;
+void cerinta1(FILE* fis_team, FILE* print) {
+    echipa* lista_echipa;
+    lista_echipa = creaza_echipa(fis_team);
+    echipa* cap_lista = lista_echipa;
     while (cap_lista != NULL) {
         fprintf(print, "%s\n", cap_lista->name_team);
         cap_lista = cap_lista->next;
     }
+    //free(lista_echipa);
+    eliberare_lista(&lista_echipa);
+    cap_lista=NULL;
 }
-
 
 
 void elimina_nod(echipa** head, echipa* nod) {
@@ -267,66 +313,72 @@ void quickSort(int arr[], int low, int high) {
     }
 }
 
-long long putere2(int n)
-{
-    int m=1;
-    while(m<n)
-        m*=2;
-    m/=2;
+long long putere2(int n) {
+    int m = 1;
+    while (m < n)
+        m *= 2;
+    m /= 2;
     return m;
 }
-void eliminare_echipa(int m,int* punctaj_echipe,echipa**head)
-{
-    int i=0;
-    while(m>0)
-    {
+
+void eliminare_echipa(int m, int* punctaj_echipe, echipa** head) {
+    int i = 0;
+    while (m > 0 && *head != NULL) {
         echipa* capat = *head;
-        int gasit=1;
-        while(gasit==1 && capat->next!=NULL)
-        {
-            if(capat->total_points==punctaj_echipe[i])
-            {
-                elimina_nod(&head,capat);
-                gasit=0;
+        while (capat != NULL && m > 0) {
+            if (capat->total_points == punctaj_echipe[i]) {
+                echipa* urm = capat->next;
+                elimina_nod(head, capat);
+                capat = urm;
+                m--;
+            } else {
+                capat = capat->next;
             }
-            capat=capat->next;
         }
-        if(capat->total_points==punctaj_echipe[i])
-            {
-                elimina_nod(&head,capat);
-                gasit=0;
-            }
         i++;
-        m--;
     }
 }
-void cerinta2(FILE* fis_team,echipa** lista_echipa,FILE* print)
-{
+
+void cerinta2(FILE* fis_team, FILE* print) {
     int nrechipe;
-    fscanf(fis_team,"%d",&nrechipe);
-    long long m=putere2(nrechipe);
-    fseek(fis_team,0,SEEK_SET);
-    *lista_echipa = creaza_echipa(fis_team);
-    echipa* cap_lista = *lista_echipa;
-    echipa* cap_lista1 = *lista_echipa;
-    echipa* cap_lista2 = *lista_echipa;
-    int* punctaj_echipe=(int*)malloc(nrechipe*sizeof(int));
-    int i=0;
-    while (cap_lista->next != NULL) {
-        fprintf(print, "%s\n", cap_lista->name_team);
-        punctaj_echipe[i]=cap_lista->total_points;
+    if (fscanf(fis_team, "%d", &nrechipe) != 1) {
+        printf("Eroare la citirea numarului de echipe.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    long long m = putere2(nrechipe);
+    fseek(fis_team, 0, SEEK_SET);
+
+    echipa* lista_echipa = creaza_echipa(fis_team);
+    if (lista_echipa == NULL) {
+        printf("Eroare: Lista de echipe este goala.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    echipa* cap_lista = lista_echipa;
+    int* punctaj_echipe = (int*)malloc(nrechipe * sizeof(int));
+    if (punctaj_echipe == NULL) {
+        printf("Eroare la alocarea memoriei pentru punctajele echipelor.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int i = 0;
+    while (cap_lista != NULL) {
+        punctaj_echipe[i] = cap_lista->total_points;
         cap_lista = cap_lista->next;
         i++;
     }
-    fprintf(print,"%s\n",cap_lista->name_team);
-    fseek(print,0,SEEK_SET);
-    quickSort(punctaj_echipe,0,nrechipe-1);
-    eliminare_echipa(m,punctaj_echipe,&cap_lista1);
-    while(cap_lista2->next!=NULL)
-    {
-        fprintf(print, "%s\n", cap_lista2->name_team);
-        cap_lista2 = cap_lista2->next;
+
+    quickSort(punctaj_echipe, 0, nrechipe - 1);
+    eliminare_echipa(nrechipe - m, punctaj_echipe, &lista_echipa);
+    //int nr=0;
+    cap_lista = lista_echipa;
+    while (cap_lista != NULL) {
+        fprintf(print, "%s\n", cap_lista->name_team);
+        cap_lista = cap_lista->next;
+        //nr++;
     }
-    fprintf(print,"%s\n",cap_lista2->name_team);
+    //printf("%d\n",nr);
+    eliberare_lista(&lista_echipa);
     free(punctaj_echipe);
 }

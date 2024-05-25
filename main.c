@@ -17,22 +17,30 @@ int main(int argc, char* argv[])
     deschidere_fisiere(argv[1],&fisier_cerinte,argv[2],&fisier_echipe,argv[3],&rez_cerinte);
     int* cerinte=(int*)malloc(5*sizeof(int));
     citeste_cerinte(fisier_cerinte,cerinte);
-    echipa* lista_echipe=NULL;
-    if(cerinte[0]==1)
+    //echipa* lista_echipe=NULL;
+    if(cerinte[0]==1 && cerinte[1]==0 && cerinte[2]==0 && cerinte[3]==0 && cerinte[4]==0)
     {
-        cerinta1(fisier_echipe,&lista_echipe,rez_cerinte);
+        cerinta1(fisier_echipe,rez_cerinte);
     }
-    if(cerinte[2]==1)
+    else if(cerinte[0]==1 && cerinte[1]==1 && cerinte[2]==0 && cerinte[3]==0 && cerinte[4]==0)
+    {
+        cerinta2(fisier_echipe,rez_cerinte);
+    }
+    else if(cerinte[0]==1 && cerinte[1]==1 && cerinte[2]==1 && cerinte[3]==0 && cerinte[4]==0)
     {
         printf("In executare.\n");
     }
-    if(cerinte[3]==1)
+    else if(cerinte[0]==1 && cerinte[1]==1 && cerinte[2]==1 && cerinte[3]==1 && cerinte[4]==0)
     {
         printf("In executare.\n");
     }
-    if(cerinte[4]==1)
+    else if(cerinte[0]==1 && cerinte[1]==1 && cerinte[2]==1 && cerinte[3]==1 && cerinte[4]==1)
     {
         printf("In executare.\n");
+    }
+    else
+    {
+        printf("Eroare.\n");
     }
     //citireFisiere(argv[1],&f1,argv[2],&f2,argv[3],&f3);
     /*fseek(f1,0,2);
