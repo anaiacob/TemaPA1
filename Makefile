@@ -1,5 +1,5 @@
 build:
-	gcc main.c functii.c -o lanParty
+	gcc main.c functii.c AVL.c BST.c liste.c cozi.c stive.c -o lanParty
 run:
 	./lanParty c.in d.in r.out
 
