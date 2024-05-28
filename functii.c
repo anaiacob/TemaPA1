@@ -783,12 +783,12 @@ BSTNode* insertBST(BSTNode *root, echipa* echip) {
     return root;
 }
 
-void printBSTDesc(BSTNode *root, FILE *print,int nr) {
+void printBSTDesc(BSTNode *root, FILE *print,int nr,echipa** lista_avl) {
     if (root == NULL) {
         return;
     }
 
-    printBSTDesc(root->right, print,nr);
+    printBSTDesc(root->right, print,nr,lista_avl);
     int gaps=42,add=2;
     float rez=(float)root->t->total_points/root->t->number_players+nr;
     fwrite(root->t->name_team,sizeof(root->t->name_team[0]),strlen(root->t->name_team),print);
@@ -796,11 +796,27 @@ void printBSTDesc(BSTNode *root, FILE *print,int nr) {
     fprintf(print,"-");
     adauga_spatii(print,add);
     fprintf(print,"%.2f\r\n",rez);
+    echipa* castigator=root->t;
+    echipa* copie_echipa = (echipa*)malloc(sizeof(echipa));
+    if (copie_echipa == NULL) {
+        printf("Eroare la alocarea memoriei pentru echipa.\n");
+        exit(1);
+        }
+    copie_echipa->name_team = strdup(castigator->name_team);
+    copie_echipa->number_players = castigator->number_players;
+    copie_echipa->total_points = castigator->total_points;
+    copie_echipa->player = (jucator*)malloc(castigator->number_players * sizeof(jucator));
+    for (int i = 0; i < castigator->number_players; i++) {
+        copie_echipa->player[i].firstName = strdup(castigator->player[i].firstName);
+        copie_echipa->player[i].secondName = strdup(castigator->player[i].secondName);
+        copie_echipa->player[i].points = castigator->player[i].points;
+    }
+    adauga_la_sfarsit(lista_avl, copie_echipa);
     //fprintf(print, "%s %.2f\n", root->t->name_team, (float)root->t->total_points/root->t->number_players+nr);
-    printBSTDesc(root->left, print,nr);
+    printBSTDesc(root->left, print,nr,lista_avl);
 }
 
-void cerinta4(FILE* print,echipa** lista_arbore,int* nr_echipe,int nr)
+void cerinta4(FILE* print,echipa** lista_arbore,int* nr_echipe,int nr,echipa** lista_avl)
 {
     fprintf(print,"\r\n");
     fprintf(print,"TOP 8 TEAMS:\r\n");
@@ -812,7 +828,7 @@ void cerinta4(FILE* print,echipa** lista_arbore,int* nr_echipe,int nr)
         //lista_arbore=lista_arbore->next;
     }
 
-    printBSTDesc(root, print,nr);
+    printBSTDesc(root, print,nr,lista_avl);
 }
 
 
@@ -875,7 +891,7 @@ AVLNode* insertAVL(AVLNode *node, echipa* echip) {
     } else if (echip->total_points < node->t->total_points) {
         node->left = insertAVL(node->left, echip);
     } else {
-        if (strcmp(echip->name_team, node->t->name_team) > 0) {
+        if (strcmp(echip->name_team, node->t->name_team) >= 0) {
             node->right = insertAVL(node->right, echip);
         } else {
             node->left = insertAVL(node->left, echip);
@@ -885,7 +901,7 @@ AVLNode* insertAVL(AVLNode *node, echipa* echip) {
     node->height = 1 + (getHeight(node->left) > getHeight(node->right) ? getHeight(node->left) : getHeight(node->right));
 
     int balance = getBalance(node);
-
+//primele 2 strcmp
     if (balance > 1 && echip->total_points < node->left->t->total_points) {
         return rotateRight(node);
     }
@@ -904,6 +920,18 @@ AVLNode* insertAVL(AVLNode *node, echipa* echip) {
         return rotateLeft(node);
     }
 
+    if(balance>1 && echip->total_points==node->left->t->total_points)
+    {
+        if(strcmp(echip->name_team,node->left->t->name_team)<0)
+            return rotateRight(node);
+        else return rotateLeft(node);
+    }
+    if(balance<-1 && echip->total_points==node->right->t->total_points)
+    {
+        if(strcmp(echip->name_team,node->right->t->name_team)<0)
+            return rotateLeft(node);
+        else return rotateRight(node);
+    }
     return node;
 }
 
@@ -926,7 +954,7 @@ void printAVLDesc(AVLNode *root,int level, FILE *print) {
             //printf("%s  %d\n",root->t->name_team,level);
         if(level==2)
         {
-            fprintf(print,"%s\n",root->t->name_team);
+            fprintf(print,"%s\r\n",root->t->name_team);
         }
         printAVLDesc(root->right,level+1, print);
         //fprintf(outFile, "%s %.2f\n", root->echipa.nume, root->echipa.punctaj);
@@ -943,10 +971,10 @@ void freeAVL(AVLNode *root) {
     free(root);
 }
 
-void cerinta5(FILE* print, echipa** lista_arbore, int* nr_echipe) {
+void cerinta5(FILE* print, echipa** lista_avl, int* nr_echipe) {
     AVLNode *root = NULL;
 
-    echipa* cap=*lista_arbore;
+    echipa* cap=*lista_avl;
     while(cap!=NULL) {
         root = insertAVL(root, cap);
         //printf("%s\n",cap->name_team);
