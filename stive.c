@@ -1,6 +1,5 @@
 #include "functii.h"
 
-
 int isEmptystack(node* top) {
     return top == NULL;
 }
