@@ -1,5 +1,5 @@
 #include "functii.h"
-//stiva
+//stiva isempty
 int isEmptystack(node* top) {
     return top == NULL;
 }
